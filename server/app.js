@@ -16,16 +16,39 @@ const logger = winston.createLogger({
 
 const app = express();
 
+// CORS — must be first to handle preflight OPTIONS
+const allowedOrigins = (config.corsOrigins || []).map((o) => {
+  try { return new URL(o).origin; } catch { return o; }
+});
+app.use(cors({
+  origin: (origin, cb) => {
+    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+    cb(new Error('Not allowed by CORS'));
+  },
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+}));
+
 app.use(helmet());
-app.use(cors({ origin: config.corsOrigins, credentials: true }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// Preflight handler — explicit BEFORE routes
+app.options('*', cors({
+  origin: (origin, cb) => {
+    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+    cb(new Error('Not allowed by CORS'));
+  },
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+}));
+
+app.get('/api/health', (req, res) => res.json({ status: 'ok', ts: new Date().toISOString() }));
 app.use('/api/auth', authRoutes);
 app.use('/api/prediction', predictionRoutes);
 app.use('/api/analytics', analyticsRoutes);
-
-app.get('/api/health', (req, res) => res.json({ status: 'ok', ts: new Date().toISOString() }));
 
 // Swagger
 const swaggerUi = require('swagger-ui-express');
@@ -41,17 +64,34 @@ app.use((err, req, res, next) => {
 });
 
 let io;
+let server;
 async function start() {
-  await mongoose.connect(config.mongoUri);
-  logger.info('Connected to MongoDB');
+  try {
+    await mongoose.connect(config.mongoUri);
+    logger.info('Connected to MongoDB');
+  } catch (err) {
+    logger.error('MongoDB connection failed:', err.message);
+  }
 
-  const redisClient = createClient({ url: config.redis.url });
-  redisClient.on('error', () => {}).connect().catch(() => {});
+  try {
+    const redisClient = createClient({ url: config.redis.url });
+    redisClient.on('error', () => {}).connect().catch(() => {
+      logger.warn('Redis connection failed — continuing without Redis');
+    });
+  } catch {
+    logger.warn('Redis unavailable — continuing without it');
+  }
 
-  io = new Server(app.listen(config.port, () => {
+  server = app.listen(config.port, () => {
     logger.info(`Server running on port ${config.port}`);
-  }), {
-    cors: { origin: config.corsOrigins, credentials: true },
+  });
+
+  io = new Server(server, {
+    cors: {
+      origin: allowedOrigins,
+      methods: ['GET', 'POST'],
+      credentials: true,
+    },
     path: '/socket.io',
   });
 
