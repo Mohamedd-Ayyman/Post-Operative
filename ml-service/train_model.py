@@ -121,12 +121,12 @@ aug_rows = []
 
 cat_cols = ['L-CORE','L-SURF','L-O2','L-BP','SURF-STBL','CORE-STBL','BP-STBL']
 cat_vals = {c: list(uci_df[c].unique()) for c in cat_cols}
-comfort_min, comfort_max = uci_df['COMFORT'].min(), uci_df['COMFORT'].max()
-decision_weights = uci_df['risk'].value_counts(normalize=True).to_dict()
+comfort_vals = pd.to_numeric(uci_df['COMFORT'], errors='coerce').dropna()
+comfort_min, comfort_max = int(comfort_vals.min()), int(comfort_vals.max())
 
 for _ in range(TARGET_ROWS):
     row = {c: np.random.choice(cat_vals[c]) for c in cat_cols}
-    row['COMFORT'] = np.random.randint(comfort_min, comfort_max + 1)
+    row['COMFORT'] = np.random.randint(int(comfort_min), int(comfort_max) + 1)
 
     # Derive synthetic features from the real ones with some noise
     core_map = {'low': 36.5, 'mid': 37.2, 'high': 38.1}
@@ -137,7 +137,7 @@ for _ in range(TARGET_ROWS):
     row['surface_temp'] = surf_map[row['L-SURF']] + np.random.normal(0, 0.15)
     row['bp_systolic'] = bp_map[row['L-BP']] + np.random.normal(0, 8)
     row['oxygen_sat'] = 98 - (row['COMFORT'] - 5) * 0.3 + np.random.normal(0, 1.5)
-    row['comfort'] = row['COMFORT']
+    row['comfort'] = row['COMFORT']  # alias for lowercase
 
     # Add smoking (correlated with risk indicators)
     risk_score = (1 if row['L-CORE'] == 'high' else 0) + (1 if row['CORE-STBL'] == 'unstable' else 0) + (1 if row['BP-STBL'] == 'unstable' else 0)
@@ -147,7 +147,30 @@ for _ in range(TARGET_ROWS):
     row['swelling'] = min(4, max(0, int(risk_score - 1 + np.random.choice([-1, 0, 1]))))
     row['discharge_score'] = min(3, max(0, int(risk_score - 1 + np.random.choice([0, 1, 2]))))
 
-    row['risk'] = np.random.choice(list(decision_weights.keys()), p=list(decision_weights.values()))
+    # ─── Correlated label assignment ───────────────────────────────────────────
+    # Score the row based on medical risk indicators (mimics UCI decision logic)
+    score = 0
+    if row['L-CORE'] == 'high': score += 2
+    if row['L-BP'] == 'high': score += 1
+    if row['L-O2'] != 'excellent': score += 1
+    if row['CORE-STBL'] == 'unstable': score += 2
+    if row['BP-STBL'] == 'unstable': score += 2
+    if row['SURF-STBL'] == 'unstable': score += 1
+    if row['COMFORT'] <= 7: score += 3
+    elif row['COMFORT'] <= 10: score += 1
+    if row['redness'] >= 2: score += 1
+    if row['swelling'] >= 2: score += 1
+    if row['discharge_score'] >= 2: score += 1
+    if row['smoking'] == 1: score += 1
+    if row['diabetes'] == 1: score += 1
+
+    # Noise factor (some cases don't follow the pattern exactly)
+    score += int(np.random.normal(0, 1.5))
+    score = max(0, score)
+
+    if score >= 9: row['risk'] = 'high'
+    elif score >= 5: row['risk'] = 'moderate'
+    else: row['risk'] = 'normal'
     aug_rows.append(row)
 
 aug_df = pd.DataFrame(aug_rows)
