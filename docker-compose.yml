@@ -1,0 +1,40 @@
+version: '3.8'
+services:
+  client:
+    build: ./client
+    ports:
+      - "3000:80"
+    depends_on:
+      - server
+    networks:
+      - postop-net
+
+  server:
+    build: ./server
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - NODE_ENV=production
+      - MONGO_URI=mongodb+srv://Mezax:hfbUs7jK6tW0Pm05@cluster0.n6aw3f3.mongodb.net/postop
+      - JWT_SECRET=MezaxGalalovic
+      - CLOUDINARY_CLOUD_NAME=dvcsoqnjl
+      - CLOUDINARY_API_KEY=682685848131469
+      - CLOUDINARY_API_SECRET=TMVoV5GnKjVW3miLKOENtuN9phk
+      - REDIS_URL=rediss://default:gQAAAAAAAVKyAAIgcDEwZjcyYWI0NGYyYWU0N2I5OTQwZmU5YjViY2IzMzJkMA@infinite-cricket-86706.upstash.io:6379
+      - ML_SERVICE_URL=http://ml-service:5000
+    depends_on:
+      - ml-service
+    networks:
+      - postop-net
+
+  ml-service:
+    build: ./ml-service
+    ports:
+      - "5000:5000"
+    networks:
+      - postop-net
+
+networks:
+  postop-net:
+    driver: bridge
