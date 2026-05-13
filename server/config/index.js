@@ -12,5 +12,7 @@ module.exports = {
   },
   redis: { url: process.env.REDIS_URL || 'rediss://default:gQAAAAAAAVKyAAIgcDEwZjcyYWI0NGYyYWU0N2I5OTQwZmU5YjViY2IzMzJkMA@infinite-cricket-86706.upstash.io:6379' },
   mlServiceUrl: process.env.ML_SERVICE_URL || 'http://localhost:5000',
-  corsOrigins: ['http://localhost:5173', 'http://localhost:3000'],
+  corsOrigins: process.env.CORS_ORIGINS
+    ? process.env.CORS_ORIGINS.split(',')
+    : ['http://localhost:5173', 'http://localhost:3000'],
 };
