@@ -16,7 +16,6 @@ const logger = winston.createLogger({
 
 const app = express();
 
-// CORS — must be first to handle preflight OPTIONS
 const allowedOrigins = (config.corsOrigins || []).map((o) => {
   try { return new URL(o).origin; } catch { return o; }
 });
