@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-const API = '/api';
+const API = 'https://hopeful-hope-production-c757.up.railway.app/api';
 
 export const login = createAsyncThunk('auth/login', async (creds, { rejectWithValue }) => {
   try {
