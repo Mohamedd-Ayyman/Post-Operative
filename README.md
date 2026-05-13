@@ -194,8 +194,3 @@ npm run dev              # starts on port 5173
 - **Accuracy**: 78% weighted average
 - **Labels**: A→normal, S→moderate, I→high
 
-## Ports
-
-- Frontend (dev): `5173`
-- Backend: `3001`
-- ML Service: `5000`
