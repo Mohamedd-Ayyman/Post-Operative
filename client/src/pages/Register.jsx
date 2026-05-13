@@ -7,12 +7,15 @@ import { Activity, AlertCircle } from 'lucide-react';
 export default function Register() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading, error } = useSelector((s) => s.auth);
+  const { error } = useSelector((s) => s.auth);
   const [form, setForm] = useState({ name: '', email: '', password: '', role: 'patient' });
+  const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitting(true);
     const result = await dispatch(register(form));
+    setSubmitting(false);
     if (!result.error) navigate('/dashboard');
   };
 
@@ -58,8 +61,8 @@ export default function Register() {
                 <option value="admin">Admin</option>
               </select>
             </div>
-            <button type="submit" disabled={loading} className="btn-primary w-full flex items-center justify-center gap-2">
-              {loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : 'Create Account'}
+            <button type="submit" disabled={submitting} className="btn-primary w-full flex items-center justify-center gap-2">
+              {submitting ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : 'Create Account'}
             </button>
           </form>
           <p className="text-center text-sm text-gray-500 mt-4">

@@ -7,13 +7,16 @@ import { Activity, Eye, EyeOff, AlertCircle } from 'lucide-react';
 export default function Login() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading, error } = useSelector((s) => s.auth);
+  const { error } = useSelector((s) => s.auth);
   const [form, setForm] = useState({ email: '', password: '' });
   const [showPwd, setShowPwd] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitting(true);
     const result = await dispatch(login(form));
+    setSubmitting(false);
     if (!result.error) navigate('/dashboard');
   };
 
@@ -52,8 +55,8 @@ export default function Login() {
                 </button>
               </div>
             </div>
-            <button type="submit" disabled={loading} className="btn-primary w-full flex items-center justify-center gap-2">
-              {loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : 'Sign In'}
+            <button type="submit" disabled={submitting} className="btn-primary w-full flex items-center justify-center gap-2">
+              {submitting ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : 'Sign In'}
             </button>
           </form>
 
