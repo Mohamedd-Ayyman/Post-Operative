@@ -1,196 +1,128 @@
-# Post-Surgical Infection Risk Prediction System
+<div align="center">
 
-A production-grade healthcare web platform that monitors post-surgical patient recovery and detects post-operative wound infections early using AI-powered risk prediction.
+# 🩹 PostOp Guard: Post-Surgical Infection Risk Prediction
 
-## Architecture
+**A healthcare platform that monitors patients' recovery after surgery and flags likely wound infections early, using machine-learning risk prediction.**
 
-```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   Client    │────▶│   Server    │────▶│  ML Service │
-│  (Vercel)   │◀────│ (Railway)   │     │  (Railway)  │
-└─────────────┘     └─────────────┘     └─────────────┘
-     │                    │                    │
-     │ Socket.IO          │ MongoDB            │ RandomForest
-     │                    │ (Atlas)            │
-     └────────────────────┴────────────────────┘
-```
+![React](https://img.shields.io/badge/React_18-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![Redux](https://img.shields.io/badge/Redux_Toolkit-764ABC?style=for-the-badge&logo=redux&logoColor=white)
+![Tailwind](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
+![Express](https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
+<br/>
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white)
+![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?style=for-the-badge&logo=scikitlearn&logoColor=white)
+![Socket.IO](https://img.shields.io/badge/Socket.IO-010101?style=for-the-badge&logo=socketdotio&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 
-## Tech Stack
-
-- **Frontend**: React 18, Vite, Redux Toolkit, Tailwind CSS, Recharts, Socket.IO
-- **Backend**: Node.js, Express, MongoDB/Mongoose, JWT, Zod, Socket.IO, BullMQ
-- **ML**: Python, Scikit-learn, RandomForest, Flask
-- **Infrastructure**: Docker, Docker Compose, Railway, Vercel
-
-## Deployment Strategy
-
-### Where to Deploy Each Part
-
-| Service | Platform | Why |
-|---------|----------|-----|
-| **Frontend** | Vercel | Best for React/Vite, free tier, auto-deploy from Git |
-| **Backend API** | Railway | Supports Node.js, env vars, custom domain, free tier |
-| **ML Service** | Railway | Supports Python/Flask, custom port, persistent |
-| **MongoDB** | Atlas | Already configured (your existing cluster) |
-| **Redis** | Upstash | Already configured (your existing instance) |
+</div>
 
 ---
 
-## Step 1: Deploy ML Service (Railway)
+## 📖 Overview
 
-1. Create a new Railway project
-2. Connect your GitHub repo
-3. Set the root directory to `ml-service/`
-4. Add start command: `python app.py`
-5. Add environment variable:
-   ```
-   MODEL_PATH=/app/model/rf_model.pkl
-   ```
-6. Deploy — note the deployed URL (e.g., `https://postop-ml.up.railway.app`)
+Surgical-site infections are among the most common complications after surgery. **PostOp Guard** lets patients submit a short **daily recovery check-in** (vital signs and wound condition). A **Random Forest model** classifies each check-in as **normal, moderate or high risk**, and clinicians get **real-time alerts** when a patient needs attention.
 
----
+## ✨ Features
 
-## Step 2: Deploy Backend (Railway)
+- 🔐 **JWT authentication with RBAC**: patient, doctor and admin roles
+- 📝 **Multi-step daily check-in** covering temperature, blood pressure, oxygen saturation, comfort, redness, swelling and discharge
+- 🤖 **Real-time AI risk prediction** (normal / moderate / high) from a Python ML microservice
+- 📈 **Recovery trend charts** built with Recharts
+- 🔔 **Live alerts** over Socket.IO, plus Redis-backed reminder queues
+- 🧑‍⚕️ **Admin dashboard** for monitoring high-risk patients
+- 🗂️ Check-in **history** and results pages
+- 📚 Full REST API documented with **Swagger / OpenAPI**
+- ✅ Tests with Jest, Supertest and Vitest
 
-1. Create a new Railway project
-2. Connect your GitHub repo
-3. Set the root directory to `server/`
-4. Start command: `node server.js`
-5. Add environment variables:
+## 🏗️ Architecture
 
 ```
-MONGO_URI=mongodb+srv://Mezax:hfbUs7jK6tW0Pm05@cluster0.n6aw3f3.mongodb.net/postop
-JWT_SECRET=MezaxGalalovic
-REDIS_URL=rediss://default:gQAAAAAAAVKyAAIgcDEwZjcyYWI0NGYyYWU0N2I5OTQwZmU5YjViY2IzMzJkMA@infinite-cricket-86706.upstash.io:6379
-CLOUDINARY_CLOUD_NAME=dvcsoqnjl
-CLOUDINARY_API_KEY=682685848131469
-CLOUDINARY_API_SECRET=TMVoV5GnKjVW3miLKOENtuN9phk
-ML_SERVICE_URL=https://your-ml-service.railway.app
-PORT=3001
-NODE_ENV=production
+┌──────────────┐  REST / WS   ┌──────────────┐    HTTP    ┌──────────────┐
+│   Client     │ ───────────▶ │   Server     │ ─────────▶ │  ML Service  │
+│ React + Vite │ ◀─────────── │ Express API  │ ◀───────── │ Flask + RF   │
+└──────────────┘  Socket.IO   └──────┬───────┘            └──────────────┘
+                                     │
+                           MongoDB · Redis (queues)
 ```
 
-6. Deploy — note the backend URL (e.g., `https://postop-api.up.railway.app`)
+Further documentation is in [`docs/`](docs/): [Architecture](docs/ARCHITECTURE.md), [API flow](docs/API_FLOW.md), [ERD](docs/ERD.md), [ML workflow](docs/ML_WORKFLOW.md) and the [OpenAPI spec](docs/openapi.yaml).
 
----
+## 🧠 ML Model
 
-## Step 3: Update Frontend for Production
+| | |
+|---|---|
+| **Dataset** | UCI Post-Operative Patient dataset (87 records), augmented to 5,500 rows |
+| **Features** | 17 (core and surface temperature, BP, O₂ saturation, comfort, wound redness, swelling, discharge, comorbidities, stability indicators…) |
+| **Model** | `RandomForestClassifier` (200 trees, max depth 15) |
+| **Accuracy** | ~78% weighted average |
+| **Labels** | A → `normal` · S → `moderate` · I → `high` |
 
-Before deploying to Vercel, update the backend URL:
+## 🧰 Tech Stack
 
-```js
-// client/vite.config.js — add your Railway backend URL
-proxy: {
-  '/api': {
-    target: 'https://postop-api.up.railway.app',  // ← your backend URL
-    changeOrigin: true,
-  },
-}
-```
+| Layer | Technologies |
+|---|---|
+| **Frontend** | React 18, Vite, Redux Toolkit, Tailwind CSS, Recharts, Socket.IO client, Vitest |
+| **Backend** | Node.js, Express, Mongoose, JWT, Zod, Helmet, Winston, Socket.IO, Redis, Swagger UI |
+| **ML** | Python, Flask, scikit-learn, pandas, NumPy |
+| **Infrastructure** | Docker, Docker Compose, Nginx; deploys to Vercel (client) and Railway (API and ML) |
 
-Then rebuild:
+## 🚀 Getting Started
 
+### Docker
 ```bash
-cd client && npm run build
+git clone https://github.com/Mohamedd-Ayyman/Post-Operative.git
+cd Post-Operative
+docker compose up --build
 ```
 
----
-
-## Step 4: Deploy Frontend (Vercel)
-
-1. Push the project to GitHub
-2. Go to [vercel.com](https://vercel.com) → Import Project
-3. Select the repo, set root directory to `client/`
-4. Framework: **Vite**
-5. Build command: `npm run build`
-6. Output directory: `dist`
-7. Add environment variable:
-   ```
-   VITE_API_URL=https://postop-api.up.railway.app
-   ```
-8. Deploy
-
----
-
-## Alternative: Use Vite Env Variables
-
-Instead of proxy in vite.config, use Vite's env system:
-
-```env
-# client/.env.production
-VITE_API_URL=https://postop-api.up.railway.app
-```
-
-Then in your API lib, use:
-```js
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL + '/api' || '/api',
-  // ...
-});
-```
-
----
-
-## Alternative: Keep Everything Docker-Ready
-
-If you want a simpler approach that still works with your existing stack:
-
-1. Deploy **Backend + ML** together on Railway using Docker:
-   - Use `docker-compose.yml` as the Railway config
-   - Railway supports Docker deployments
-2. Deploy **Frontend** on Vercel (static build)
-3. Connect them via environment variables
-
----
-
-## Running Locally (Without Docker)
-
+### Manual
 ```bash
-# 1. Start ML Service
+# 1. ML service
 cd ml-service
 pip install -r requirements.txt
-python train_model.py    # train model first time
-python app.py            # starts on port 5000
+python train_model.py      # first run only
+python app.py              # :5000
 
-# 2. Start Backend
-cd server
+# 2. API
+cd ../server
 npm install
-node server.js           # starts on port 3001
+node server.js             # :3001
 
-# 3. Start Frontend
-cd client
+# 3. Client
+cd ../client
 npm install
-npm run dev              # starts on port 5173
+npm run dev                # :5173
 ```
 
----
-
-## Environment Variables
+## 🔐 Environment Variables (`server/.env`)
 
 | Variable | Description |
-|----------|-------------|
-| `MONGO_URI` | MongoDB Atlas connection string |
+|---|---|
+| `MONGO_URI` | MongoDB connection string |
 | `JWT_SECRET` | JWT signing secret |
-| `REDIS_URL` | Upstash Redis URL |
-| `ML_SERVICE_URL` | Deployed ML service URL |
+| `REDIS_URL` | Redis connection URL |
+| `ML_SERVICE_URL` | URL of the ML microservice |
 | `CLOUDINARY_*` | Image upload credentials |
+| `CORS_ORIGINS` | Allowed frontend origins |
 
-## Features
+> Keep real values out of version control. Commit only a `.env.example`.
 
-- JWT authentication with RBAC (patient/doctor/admin)
-- Multi-step daily recovery check-in form
-- Real-time AI risk prediction (normal/moderate/high)
-- Recovery trend charts (Recharts)
-- Socket.IO real-time alerts
-- Admin dashboard with high-risk monitoring
-- Full REST API with Swagger docs
-- ML trained on UCI Post-Operative Patient dataset
+## ☁️ Deployment
 
-## ML Model
+| Service | Platform |
+|---|---|
+| Frontend | Vercel (root: `client/`, framework: Vite) |
+| Backend API | Railway (root: `server/`) |
+| ML service | Railway (root: `ml-service/`) |
+| Database / cache | MongoDB Atlas · Upstash Redis |
 
-- **Dataset**: UCI Post-Operative Patient dataset (87 real records)
-- **Augmentation**: Synthetic expansion to 5,500 rows
-- **Model**: RandomForestClassifier (200 trees, depth 15)
-- **Accuracy**: 78% weighted average
-- **Labels**: A→normal, S→moderate, I→high
+## ⚕️ Disclaimer
 
+This is an academic project. It is **not** a certified medical device and must not replace professional clinical judgement.
+
+## 👤 Author
+
+**Mohamed Ayman**, Frontend / Full-Stack Developer · [GitHub](https://github.com/Mohamedd-Ayyman) · [LinkedIn](https://linkedin.com/in/mohamed-ayman-8787b0269)
